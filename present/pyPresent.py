@@ -10,26 +10,26 @@ Importing:
 
 Encrypting with a 80-bit key:
 ------------------------------
->>> key = "00000000000000000000".decode('hex')
->>> plain = "0000000000000000".decode('hex')
+>>> key = bytes.fromhex("00000000000000000000")
+>>> plain = bytes.fromhex("0000000000000000")
 >>> cipher = Present(key)
 >>> encrypted = cipher.encrypt(plain)
->>> encrypted.encode('hex')
+>>> encrypted.hex()
 '5579c1387b228445'
 >>> decrypted = cipher.decrypt(encrypted)
->>> decrypted.encode('hex')
+>>> decrypted.hex()
 '0000000000000000'
 
 Encrypting with a 128-bit key:
 -------------------------------
->>> key = "0123456789abcdef0123456789abcdef".decode('hex')
->>> plain = "0123456789abcdef".decode('hex')
+>>> key = bytes.fromhex("0123456789abcdef0123456789abcdef")
+>>> plain = bytes.fromhex("0123456789abcdef")
 >>> cipher = Present(key)
 >>> encrypted = cipher.encrypt(plain)
->>> encrypted.encode('hex')
+>>> encrypted.hex()
 '0e9d28685e671dd6'
 >>> decrypted = cipher.decrypt(encrypted)
->>> decrypted.encode('hex')
+>>> decrypted.hex()
 '0123456789abcdef'
 
 fully based on standard specifications: http://www.crypto.ruhr-uni-bochum.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
@@ -50,7 +50,7 @@ class Present:
         elif len(key) * 8 == 128:
             self.roundkeys = generateRoundkeys128(string2number(key), self.rounds)
         else:
-            raise ValueError, "Key must be a 128-bit or 80-bit rawstring"
+            raise ValueError("Key must be a 128-bit or 80-bit rawstring")
 
     def encrypt(self, block):
         """Encrypt 1 block (8 bytes)
@@ -59,7 +59,7 @@ class Present:
         Output: ciphertext block as raw string
         """
         state = string2number(block)
-        for i in xrange(self.rounds - 1):
+        for i in range(self.rounds - 1):
             state = addRoundKey(state, self.roundkeys[i])
             state = sBoxLayer(state)
             state = pLayer(state)
@@ -73,7 +73,7 @@ class Present:
         Output: plaintext block as raw string
         """
         state = string2number(block)
-        for i in xrange(self.rounds - 1):
+        for i in range(self.rounds - 1):
             state = addRoundKey(state, self.roundkeys[-i - 1])
             state = pLayer_dec(state)
             state = sBoxLayer_dec(state)
@@ -85,12 +85,12 @@ class Present:
 
 # 0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 Sbox = [0xc, 0x5, 0x6, 0xb, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2]
-Sbox_inv = [Sbox.index(x) for x in xrange(16)]
+Sbox_inv = [Sbox.index(x) for x in range(16)]
 PBox = [0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51,
         4, 20, 36, 52, 5, 21, 37, 53, 6, 22, 38, 54, 7, 23, 39, 55,
         8, 24, 40, 56, 9, 25, 41, 57, 10, 26, 42, 58, 11, 27, 43, 59,
         12, 28, 44, 60, 13, 29, 45, 61, 14, 30, 46, 62, 15, 31, 47, 63]
-PBox_inv = [PBox.index(x) for x in xrange(64)]
+PBox_inv = [PBox.index(x) for x in range(64)]
 
 
 def generateRoundkeys80(key, rounds):
@@ -101,7 +101,7 @@ def generateRoundkeys80(key, rounds):
             rounds: the number of rounds as an integer
     Output: list of 64-bit roundkeys as integers"""
     roundkeys = []
-    for i in xrange(1, rounds + 1):  # (K1 ... K32)
+    for i in range(1, rounds + 1):  # (K1 ... K32)
         # rawkey: used in comments to show what happens at bitlevel
         # rawKey[0:64]
         roundkeys.append(key >> 16)
@@ -125,7 +125,7 @@ def generateRoundkeys128(key, rounds):
             rounds: the number of rounds as an integer
     Output: list of 64-bit roundkeys as integers"""
     roundkeys = []
-    for i in xrange(1, rounds + 1):  # (K1 ... K32)
+    for i in range(1, rounds + 1):  # (K1 ... K32)
         # rawkey: used in comments to show what happens at bitlevel
         roundkeys.append(key >> 64)
         # 1. Shift
@@ -149,7 +149,7 @@ def sBoxLayer(state):
     Output: 64-bit integer"""
 
     output = 0
-    for i in xrange(16):
+    for i in range(16):
         output += Sbox[( state >> (i * 4)) & 0xF] << (i * 4)
     return output
 
@@ -160,7 +160,7 @@ def sBoxLayer_dec(state):
     Input:  64-bit integer
     Output: 64-bit integer"""
     output = 0
-    for i in xrange(16):
+    for i in range(16):
         output += Sbox_inv[( state >> (i * 4)) & 0xF] << (i * 4)
     return output
 
@@ -171,7 +171,7 @@ def pLayer(state):
     Input:  64-bit integer
     Output: 64-bit integer"""
     output = 0
-    for i in xrange(64):
+    for i in range(64):
         output += ((state >> i) & 0x01) << PBox[i]
     return output
 
@@ -182,7 +182,7 @@ def pLayer_dec(state):
     Input:  64-bit integer
     Output: 64-bit integer"""
     output = 0
-    for i in xrange(64):
+    for i in range(64):
         output += ((state >> i) & 0x01) << PBox_inv[i]
     return output
 
@@ -193,7 +193,7 @@ def string2number(i):
     Input: string (big-endian)
     Output: long or integer
     """
-    return int(i.encode('hex'), 16)
+    return int(i.hex(), 16)
 
 
 def number2string_N(i, N):
@@ -204,7 +204,7 @@ def number2string_N(i, N):
     Output: string (big-endian)
     """
     s = '%0*x' % (N * 2, i)
-    return s.decode('hex')
+    return bytes.fromhex(s)
 
 
 def _test():
@@ -214,30 +214,34 @@ def _test():
 
 
 if __name__ == "__main__":
-    key = "0123456789abcdef0123456789abcdef".decode('hex')
-    plain_1 = "1weqweqd"
-    plain_2 = "23444444"
-    plain_3 = "dddd2225"
-    print plain_1
-    print plain_2
-    print plain_3
+    // Plain 
+    key = bytes.fromhex("0123456789abcdef0123456789abcdef")
+    plain_1 = b"1weqweqd"
+    plain_2 = b"23444444"
+    plain_3 = b"dddd2225"
+    print(plain_1)
+    print(plain_2)
+    print(plain_3)
+    
+    // Encrypt
     cipher = Present(key)
     encrypted_1 = cipher.encrypt(plain_1)
     encrypted_2 = cipher.encrypt(plain_2)
     encrypted_3 = cipher.encrypt(plain_3)
-    enc_1 = encrypted_1.encode('hex')
-    enc_2 = encrypted_2.encode('hex')
-    enc_3 = encrypted_3.encode('hex')
-    print enc_1
-    print enc_2
-    print enc_3
+    enc_1 = encrypted_1.hex()
+    enc_2 = encrypted_2.hex()
+    enc_3 = encrypted_3.hex()
+    print(enc_1)
+    print(enc_2)
+    print(enc_3)
 
+    // Decrypt
     decrypted_1 = cipher.decrypt(encrypted_1)
     decrypted_2 = cipher.decrypt(encrypted_2)
     decrypted_3 = cipher.decrypt(encrypted_3)
-    decr_1 = decrypted_1.encode('hex')
-    decr_2 = decrypted_2.encode('hex')
-    decr_3 = decrypted_3.encode('hex')
-    print decr_1.decode('hex')
-    print decr_2.decode('hex')
-    print decr_3.decode('hex')
+    decr_1 = decrypted_1.hex()
+    decr_2 = decrypted_2.hex()
+    decr_3 = decrypted_3.hex()
+    print(bytes.fromhex(decr_1))
+    print(bytes.fromhex(decr_2))
+    print(bytes.fromhex(decr_3))
